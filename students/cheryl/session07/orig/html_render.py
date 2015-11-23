@@ -40,27 +40,26 @@ class Element:
         :param ind: the indentation level
         :type ind: string
         '''
-        file_out.write(ind)
+        self.indent = ind
+        file_out.write(self.indent)
         file_out.write("<{}".format(self.tag_name))
         if self.style is not None:
             file_out.write(' style="{}"'.format(self.style))
         if self.id is not None:
             file_out.write(' id="{}"'.format(self.id))
         file_out.write(">\n")
+        indent = self.indent + "  "
         for ele in self.content:
             if type(ele) == str:
         #  try:
          #   except AttributeError:
-                ind = ind + "  "
-                file_out.write(ind)
+                file_out.write(indent)
                 file_out.write(str(ele))
                 file_out.write("\n")
             else:
-                ind = ind + "  "
-                ele.render(file_out, ind)
+                ele.render(file_out, indent)
 
-        ind = ind[0:-2]
-        file_out.write(ind)
+        file_out.write(self.indent)
         file_out.write("</{}>\n".format(self.tag_name))
 
 
