@@ -17,6 +17,7 @@ def print_donors(donors):
     print(list(donors.keys()))
     return
 
+
 def add_donor(name, donors):
     '''Find the donor in the dict or add a new entry'''
     donation = ""
@@ -31,8 +32,9 @@ def add_donor(name, donors):
     try:
         donors[name].append(dollar)
     except KeyError:
-        donors[name] = [dollar] 
-    print("Thank you {} for your generous donation of ${}!\n".format(name, donation))
+        donors[name] = [dollar]
+    print("Thank you {} for your generous donation of ${}!\n".format(name,
+                                                                     donation))
     return
 
 
@@ -49,7 +51,9 @@ def send_thank_you(donors):
 def create_report(donors):
     '''Create a report of all the donors'''
     for donor in donors:
-        print("name: {:<25}  total:${:>5}   number:{:>3}   avg:${:>8.2f}".format(donor, sum(donors[donor]), len(donors[donor]), sum(donors[donor])/len(donors[donor])))
+        print("name: {:<25}  total:${:>5}   number:{:>3}   avg:${:>8.2f}"
+              .format(donor, sum(donors[donor]), len(donors[donor]),
+               sum(donors[donor])/len(donors[donor])))
     return
 
 if __name__ == '__main__':
