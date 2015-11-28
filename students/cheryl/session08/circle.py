@@ -54,6 +54,7 @@ class Circle:
     def __ge__(self, c):
         return(self.radius >= c.radius)
 
+
 class CircleFromDiameter(Circle):
     def __init__(self, diameter):
-        Circle.__init__(self,diameter/2)
+        Circle.__init__(self, diameter/2)
