@@ -3,142 +3,142 @@
 import csv
 import os.path
 from datetime import date
+import smtplib
 
-
-def add_equipment(filename, fields):
+class FTInventory:
     '''
-    Create a new record and add it to the file
-    Args:
+    Flight Test Equipment Inventory class
+    '''
+    def __init__(self, filename):
+        self.fieldnames = ['FTID', 'Nomen', 'Asset Tag', 'Location',
+                      'Name', 'Date Checked Out', 'Expected Return']
+        self.filename = filename
+
+
+    def read(self):
+        '''
+        Read the file into memory
+        '''
+        try:
+            with open(self.filename, "r") as f:
+                #  reader = csv.DictReader(f, self.fieldnames)
+                reader = csv.DictReader(f)
+                self.contents = [row for row in reader]
+        except FileNotFoundError:
+            self.contents = []
+
+    def append(self, new_record):
+        '''
+        Append content
+        '''
+        self.read()
+        self.contents.append(new_record)
+        self.write()
+
+    def write(self):
+        '''
+        Write out to the file
+        '''
+        with open(self.filename, "w") as f:
+            writer = csv.DictWriter(f, fieldnames = self.fieldnames)
+            writer.writeheader()
+            for row in self.contents:
+                writer.writerow(row)
+    
+
+    def add_equipment(self):
+        '''
+        Create a new record and add it to the file
+        Args:
         fn - filename of inventory file
         fieldnames - list of top row of csv file
-    Return:
+        Return:
         None
-    '''
-    f = open(filename, "a")
-    writer = csv.DictWriter(f, fieldnames = fieldnames)
+        '''
 
-    record = dict()
-    record['FTID'] = input("FTID[]: ")
-    record['Nomen'] = input("Nomenclature[]: ")
-    record['Asset Tag'] = input("Asset Tag[]: ")
-    record['Location'] = input("Location[]: ")
-    writer.writerow(record)
-    f.close()
-    return()
+        record = dict.fromkeys(self.fieldnames, None)
+        record['FTID'] = input("FTID[]: ")
+        record['Nomen'] = input("Nomenclature[]: ")
+        record['Asset Tag'] = input("Asset Tag[]: ")
+        record['Location'] = input("Location[]: ")
+        self.append(record)
 
-def list_equipment(fn, fields):
-    '''
-    Read the file and display contents
-    Args:
-        fn - filename of the inventory file
-    Return:
-        data - all the equipment in a dictionary reader object
-    '''
-    f = open(fn, "r")
-    reader = csv.DictReader(f, fieldnames=fields)
-    print("   \tFTID\tAsset Tag\t\tNomen\tUser\tDate Checked Out")
-    for index, row in enumerate(reader):
-        print("{} - \t{}\t\t{}\t\t{}\t\t{}\t\t{}".format(index+1, row['FTID'],
-               row['Asset Tag'], row['Nomen'],
-               row['User'], row['Date Checked Out']))
-    print("\n")
-    f.close()
-    return()
+    def list_equipment(self):
+        '''
+        Format and display contents
+        Args:
+        Return:
+        '''
+        self.read()
+        print("   \tFTID\tAsset Tag\t\tNomen\tUser\tDate Checked Out")
+        for index, row in enumerate(self.contents):
+            print("{} - \t{}\t\t{}\t\t{}\t\t{}\t\t{}".format(index+1, row['FTID'],
+                row['Asset Tag'], row['Nomen'], row['Name'], row['Date Checked Out']))
+        print("\n")
 
-def checkout_equipment(fn, fields):
-    '''
-    Checkout equipement by selecting a record and adding more metadata to it
 
-    Args:
-        fieldnames - list of top row of csv file
-    Return:
-        None
-    '''
-    # List the all the equipment, already checked out or not
-    all_equipment = list_equipment(fn, fields)
+    def checkout_equipment(self):
+        '''
+        Checkout equipement by selecting a record and adding more metadata to it
+        '''
+        # List the all the equipment, already checked out or not
+        self.list_equipment()
 
-    # Request user to select equipment
-    rownum = int(input("enter line number of equipment to check out: "))-1
+        # Request user to select equipment
+        rownum = int(input("enter line number of equipment to check out: ")) -1
 
-    # Prompt for additional metadata
-    # Use today's date for checkout date
+        # Prompt for additional metadata
+        # Use today's date for checkout date
 
-    # update file
-    with open(fn, "r") as f:
-        reader = csv.DictReader(f, fieldnames = fields)
-        contents = [row for row in reader]
+        # update file
+        self.contents[rownum]['Date Checked Out'] = str(date.today())
+        self.contents[rownum]['Name'] = input("name: ")
+        self.write()
 
-    contents[rownum]['Date Checked Out'] = str(date.today())
-    contents[rownum]['User'] = input("name: ")
-
-    with open(fn, "w") as f:
-        writer = csv.DictWriter(f, fieldnames = fields)
-        for row in contents:
-            writer.writerow(row)
     
-def return_equipment(fn, fields):
-    '''
-    Remove the metadata to check in the equipment
-    Args:
-        None
-    Return:
-        None
-    '''
-    # List the all the equipment, already checked out or not
-    all_equipment = list_equipment(fn, fields)
+    def return_equipment(self):
+        '''
+        Remove the metadata to check in the equipment
+        '''
+        # List the all the equipment, already checked out or not
+        self.list_equipment()
 
-    # Request user to select equipment
-    rownum = int(input("enter line number of equipment to return: "))-1
+        # Request user to select equipment
+        rownum = int(input("enter line number of equipment to return: ")) -1
 
-    # update file
-    with open(fn, "r") as f:
-        reader = csv.DictReader(f, fieldnames = fields)
-        contents = [row for row in reader]
+        # Remove the meta data for that record
+        self.contents[rownum]['Date Checked Out'] = None
+        self.contents[rownum]['Name'] = None
+        self.write()
 
-    # Remove the meta data for that record
-    contents[rownum]['Date Checked Out'] = None
-    contents[rownum]['User'] = None
- 
-    with open(fn, "w") as f:
-        writer = csv.DictWriter(f, fieldnames = fields)
-        for row in contents:
-            writer.writerow(row)
-    return() 
+    def del_equipment(self):
+        '''
+        Delete a piece of inventory 
+        Args:
+            None
+        Return:
+         None
+        '''
+        # List the all the equipment, already checked out or not
+        self.list_equipment()
 
-def del_equipment(fn, fields):
-    '''
-    Delete a piece of inventory 
-    Args:
-        None
-    Return:
-        None
-    '''
-    # List the all the equipment, already checked out or not
-    all_equipment = list_equipment(fn, fields)
+        # Request user to select equipment
+        rownum = int(input("enter line number of equipment to delete: "))-1
 
-    # Request user to select equipment
-    rownum = int(input("enter line number of equipment to delete: "))-1
+        # update file
+        del self.contents[rownum]
+        self.write()
 
-    # update file
-    with open(fn, "r") as f:
-        reader = csv.DictReader(f, fieldnames = fields)
-        contents = [row for index,row in enumerate(reader) if rownum != index]
-
- 
-    with open(fn, "w") as f:
-        writer = csv.DictWriter(f, fieldnames = fields)
-        for row in contents:
-            writer.writerow(row)
-    return() 
-def send_email():
-    return()
+    def send_email(self):
+        self.read()
+        message = "hi"
+        server = smtplib.SMTP('localhost')
+        server.sendmail(triageuser@dst.com, admin@dst.com, message)
+        server.quit()
 
 if __name__  == '__main__':
 # open data file and read in contents
-    fieldnames = ['FTID', 'Nomen', 'Asset Tag', 'Location',
-                      'User', 'Date Checked Out', 'Expected Return']
-    filename = 'inventory.csv'
-
+    ft = FTInventory("inventory.csv")
 
     ans = ''
     while ans != 'q':
@@ -151,22 +151,22 @@ if __name__  == '__main__':
                     "q-quit\n[q]:")
         if ans == 'a':
             print("\nAdd Equipment to Inventory")
-            add_equipment(filename, fieldnames)
+            ft.add_equipment()
         elif ans == 'c':
             print("\nCheckout Equipment")
-            checkout_equipment(filename, fieldnames)
+            ft.checkout_equipment()
         elif ans == 'r':
             print("\nReturn Equipment")
-            return_equipment(filename, fieldnames)
+            ft.return_equipment()
         elif ans == 'd':
             print("\nDelete Equipment from Inventory")
-            del_equipment(filename, fieldnames)
+            ft.del_equipment()
         elif ans == 'l':
             print("\nList All Equipment")
-            list_equipment(filename, fieldnames)
+            ft.list_equipment()
         elif ans == 's':
             print("\nSending email...")
-            send_email()
+            ft.send_email()
         else:
             ans = 'q'
             print("Exiting")
