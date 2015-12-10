@@ -61,75 +61,87 @@ class FTInventory:
         Format and display contents
         '''
         self.read()
-        print("   \tFTID\tAsset Tag\t\tNomen\tUser\tDate Checked Out")
+        ret_str = "   - {:<12}\t{:<12}\t{:<20}\t{:<20}\t{:<20}\n".format(
+                "FTID", "Asset Tag", "Nomen", "User", "Date Checked Out")
         for index, row in enumerate(self.contents):
-            print("{} - \t{}\t\t{}\t\t{}\t\t{}\t\t{}".
-                  format(index+1, row['FTID'], row['Asset Tag'],
-                         row['Nomen'], row['Name'], row['Date Checked Out']))
-        print("\n")
+            ret_str = "\n".join((ret_str,
+                                 "{} - {:<12}\t{:<12}\t{:<20}\t{:<20}\t{:<20}".
+                                 format(index+1, row['FTID'], row['Asset Tag'],
+                                        row['Nomen'], row['Name'],
+                                        row['Date Checked Out'])))
+        return(ret_str)
+
+    def select_a_row(self):
+        '''
+        List all the equipment and request a row number
+        '''
+        # List the all the equipment
+        print(self.list_equipment())
+
+        # Request user to select equipment
+        rownum = int(input("select a line number: "))-1
+        return(rownum)
 
     def checkout_equipment(self):
         '''
         Checkout equipment by selecting a record
         and adding more metadata to it
         '''
-        # List the all the equipment, already checked out or not
-        self.list_equipment()
-
-        # Request user to select equipment
-        rownum = int(input
-                     ("enter line number of equipment to check out: ")) - 1
+        rownum = self.select_a_row()
 
         # Prompt for additional metadata
         # Use today's date for checkout date
-        self.contents[rownum]['Date Checked Out'] = str(date.today())
-        self.contents[rownum]['Name'] = input("name: ")
-        self.write()
+        try:
+            self.contents[rownum]['Date Checked Out'] = str(date.today())
+            self.contents[rownum]['Name'] = input("name: ")
+        except IndexError:
+            print("Invalid row")
+        else:
+            self.write()
 
     def return_equipment(self):
         '''
         Remove the metadata to check in the equipment
         '''
-        # List the all the equipment, already checked out or not
-        self.list_equipment()
-
         # Request user to select equipment
-        rownum = int(input("enter line number of equipment to return: ")) - 1
+        rownum = self.select_a_row()
 
         # Remove the meta data for that record
-        self.contents[rownum]['Date Checked Out'] = None
-        self.contents[rownum]['Name'] = None
-        self.write()
+        try:
+            self.contents[rownum]['Date Checked Out'] = None
+            self.contents[rownum]['Name'] = None
+        except IndexError:
+            print("Invalid row")
+        else:
+            self.write()
 
     def del_equipment(self):
         '''
         Delete a piece of inventory
         '''
-        # List the all the equipment, already checked out or not
-        self.list_equipment()
-
-        # Request user to select equipment
-        rownum = int(input("enter line number of equipment to delete: "))-1
-
+        rownum = self.select_a_row()
         # update file
-        del self.contents[rownum]
-        self.write()
+        try:
+            del self.contents[rownum]
+        except IndexError:
+            print("Invalid selection")
+        else:
+            self.write()
 
     def send_email(self):
         '''
         send email to admin
         '''
-        self.read()
-        message = str()
-        message.join("   \tFTID\tAsset Tag\t\tNomen\tUser\tDate Checked Out")
-        for index, row in enumerate(self.contents):
-            message.join("{} - \t{}\t\t{}\t\t{}\t\t{}\t\t{}".
-                         format(index+1,
-                                row['FTID'], row['Asset Tag'],
-                                row['Nomen'],
-                                row['Name'], row['Date Checked Out']))
-        server = smtplib.SMTP('localhost')
-        server.sendmail(triageuser@dst.com, admin@dst.com, message)
+        message = "".join(("To: Cheryl.Ohashi@gmail.com",
+                           "From: cheryl.ohashi@gmail.com",
+                           "Subject: FTInventory",
+                           "Flight Test Inventory\n",
+                           self.list_equipment()))
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login("cheryl.ohashi@gmail.com", "passwd")
+        server.sendmail("cheryl.ohashi@gmail.com",
+                        "cheryl.ohashi@gmail.com", message)
         server.quit()
 
 if __name__ == '__main__':
@@ -138,13 +150,13 @@ if __name__ == '__main__':
 
     ans = ''
     while ans != 'q':
-        ans = input("s-send email\n" +
-                    "c-checkout equipment\n" +
+        ans = input("c-checkout equipment\n" +
                     "a-add equipment\n" +
                     "r-return equipment\n" +
                     "d-delete equipment\n" +
                     "l-list equipment\n" +
-                    "q-quit\t[q]:")
+                    "s-send email\n" +
+                    "q-quit\t\t[q]:")
         if ans == 'a':
             print("\nAdd Equipment to Inventory")
             ft.add_equipment()
@@ -159,7 +171,7 @@ if __name__ == '__main__':
             ft.del_equipment()
         elif ans == 'l':
             print("\nList All Equipment")
-            ft.list_equipment()
+            print(ft.list_equipment())
         elif ans == 's':
             print("\nSending email...")
             ft.send_email()

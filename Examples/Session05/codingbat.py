@@ -10,6 +10,7 @@ Put here so we can write unit tests for them ourselves
 
 
 def sleep_in(weekday, vacation):
+<<<<<<< HEAD
     return not (weekday is True and vacation is False)
 
 <<<<<<< HEAD
@@ -24,3 +25,6 @@ def monkey_trouble(a_smile, b_smile):
 
 
 >>>>>>> ac3fdc60a59913a3b8f9a60b7c4f2ee2b5eb08fe
+=======
+    return not (weekday and vacation)
+>>>>>>> 8bb125d6cd45ada491d65ea67a06d410de669e25

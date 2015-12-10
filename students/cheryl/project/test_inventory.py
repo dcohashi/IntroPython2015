@@ -22,6 +22,11 @@ def test_read_none():
     ft.read()
     assert ft.contents == []
 
+def test_write():
+    ft = FTInventory("test.csv")
+    ft.contents = ["This is a the first line", "this is the 2nd"]
+    ft.write()
+
 def test_append():
     make_test_file()
     ft = FTInventory("test.csv")
@@ -33,7 +38,7 @@ def test_append():
 def test_checkout_equipment():
     make_test_file()
     ft = FTInventory("test.csv")
-    ft.input = lambda _: ('NewName')
+    ft.input = lambda _: ('1')
     ft.checkout_equipment()
 
 def test_del_equipment():
